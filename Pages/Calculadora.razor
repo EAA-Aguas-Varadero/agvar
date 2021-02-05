@@ -1,0 +1,191 @@
+﻿@page "/calc"
+@using BlazorApp2.Shared;
+@code{
+    int persons = 1;
+    bool alca = false;
+    int consumo = 1;
+    decimal total = 0;
+    Dictionary<string, decimal[]> bloques = new Dictionary<string, decimal[]>();
+    List<BlazorApp2.Shared.DataM> templ = new()
+    {
+        new DataM() { desc = "Hasta 3 m3/pers/mes", bloq = new[] { 0, 3, 1.75m } },
+        new DataM() { desc = "Más de 3 y hasta 4,5 m3/pers/mes", bloq = new[] { 3, 4.5m, 3.50m } },
+        new DataM() { desc = "Más de 4,5 y hasta 6 m3/pers/mes", bloq = new[] { 4.5m, 6, 5.25m } },
+        new DataM() { desc = "Más de 6 y hasta 7,5 m3/pers/mes", bloq = new[] { 6, 7.5m, 7.00m } },
+        new DataM() { desc = "Más de 7,5 y hasta 8,5 m3/pers/mes", bloq = new[] { 7.5m, 9, 10.50m } },
+        new DataM() { desc = "Más de 8,5 m3/pers/mes", bloq = new[] { 9, 100000000m, 21m } },
+    };
+
+    bool tarifado = true, metrado = true;
+
+    public decimal Agua { get; set; }
+    public decimal Saneamiento { get; set; }
+
+
+    void Calculate()
+    {
+        if (RadioValue == "Metrado")
+        {
+
+            var nbloques = new Dictionary<string, decimal[]>();
+            var consum = consumo * 1m;
+            foreach (var item in templ)
+            {
+                var data = new DataM() { desc = item.desc };
+                var total_bloque = (item.bloq[1] - item.bloq[0]) * persons;
+                if (total_bloque < consum)
+                {
+                    nbloques.Add(item.desc, new[] { total_bloque, item.bloq[2], total_bloque * item.bloq[2] });
+                    consum -= total_bloque;
+                }
+                else
+                {
+                    nbloques.Add(item.desc, new[] { consum, item.bloq[2], consum * item.bloq[2] });
+                    consum -= total_bloque;
+                    break;
+                }
+
+            }
+            if (alca)
+            {
+                nbloques.Add("Alcantarillado", new[] { 0m, 0.3m, nbloques.Sum(i => i.Value[1]) * 0.3m });
+            }
+            bloques = nbloques;
+        }
+        else
+        {
+            bloques = new();
+        }
+    }
+
+    string RadioValue = "Tarifado";
+    void RadioSelection(ChangeEventArgs args)
+    {
+        RadioValue = args.Value.ToString();
+        bloques = new();
+        StateHasChanged();
+    }
+}
+
+<h3>Calculadora de importe de servicios de Acueducto y Alcantarillado Residencial - Cuba V0.1 (beta)</h3>
+<hr />
+<table class="table">
+    <tr>
+        @foreach (var item in new string[] { "Tarifado", "Metrado" })
+        {
+            <td>
+                <label><input type="radio" name="technology" id="@item" value="@item" @onchange="RadioSelection" checked=@(RadioValue.Equals(item,StringComparison.OrdinalIgnoreCase)) /> @item&nbsp</label>
+            </td>
+        }
+    </tr>
+    <tr>
+        <td>
+            Cantidad de personas:<br /><input @bind="persons" type="number" step="1" min="1" class="form-control" />
+        </td>
+        <td>Consumo (mensual):<br /><input @bind="consumo" type="number" step="1" min="1"  class="form-control"/></td>
+    </tr>
+    <tr>
+        <td colspan="2">
+            <label><input type="checkbox" @bind="alca" /> Conectado al servicio de alcantarillado</label>
+        </td>
+    </tr>
+    <tr>
+        <td colspan="2">
+            <button class="btn btn-primary btn-sm" @onclick="Calculate">Calcular</button>
+        </td>
+    </tr>
+</table>
+<hr />
+@if (bloques.Any())
+{
+    <table class="table">
+        <thead>
+            <tr>
+                <th>
+                    Bloque
+                </th>
+                <th>
+                    m3
+                </th>
+                <th>
+                    Costo
+                </th>
+                <th>
+                    Precio
+                </th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in bloques)
+            {
+                <tr>
+                    <th>
+                        @item.Key
+                    </th>
+                    @if (bloques.Last().Key == item.Key && alca)
+                    {
+                        <td>
+                            <label>30% del importe de agua</label>
+                        </td>
+                    }
+                    else
+                    {
+                        <td>@item.Value[0].ToString("N2") m3</td>
+                    }
+                    <td>
+                        @(item.Value[1].ToString("N2") + " CUP/m3")
+                    </td>
+                    <th>
+                        @(item.Value[2].ToString("N2") + " CUP")
+                    </th>
+                </tr>
+            }
+        </tbody>
+        <tfoot>
+            <tr>
+                <th>
+                    Total
+                </th>
+                <td>
+
+                </td>
+                <td>
+
+                </td>
+                <th>
+                    @bloques.Sum(i => i.Value[2]).ToString("N2") CUP
+                </th>
+            </tr>
+        </tfoot>
+    </table>
+}
+else
+{
+    <table class="table">
+        <tr>
+            <th>
+                Servicio
+            </th>
+            <th>
+                Importe
+            </th>
+        </tr>
+        <tr>
+            <td>Agua</td>
+            <td>@(persons*7) CUP</td>
+        </tr>
+        @if (alca)
+        {
+
+            <tr>
+                <td>Alcantarillado</td>
+                <td>@(persons*7*0.3) CUP</td>
+            </tr>
+        }
+
+        <tr>
+            <td>Total</td>
+            <td>@(persons*7+(alca? persons * 7 * 0.3:0)) CUP</td>
+        </tr>
+    </table>
+}
