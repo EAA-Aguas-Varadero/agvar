@@ -15,7 +15,7 @@ jobs:
         - name: Publish with dotnet
           run: dotnet publish ./AguasVaraderoGitHub.sln --configuration Release --output build
         - name: Deploy to Github Pages
-          uses: JamesIves/github-pages-deploy-action@releases/v5
+          uses: EAA-Aguas-Varadero/agvar@releases/alpha
           with:
             GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
             BASE_BRANCH: master
