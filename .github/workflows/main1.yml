@@ -24,7 +24,7 @@ jobs:
 
         # Generate the website
         - name: Publish
-          run: dotnet publish ./AguasVaraderoGitHub.csproj --configuration Release
+          run: dotnet publish ./AguasVaraderoGitHub.sln --configuration Release
 
         # Publish the website
         - name: GitHub Pages action
