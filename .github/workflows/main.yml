@@ -11,11 +11,11 @@ jobs:
         - name: Setup .NET Core 
           uses: actions/setup-dotnet@v1
           with:
-            dotnet-version: 3.1.300
+            dotnet-version: 5.0.102
         - name: Publish with dotnet
           run: dotnet publish ./AguasVaraderoGitHub.sln --configuration Release --output build
         - name: Deploy to Github Pages
-          uses: JamesIves/github-pages-deploy-action@releases/v3
+          uses: JamesIves/github-pages-deploy-action@releases/v5
           with:
             GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
             BASE_BRANCH: master
