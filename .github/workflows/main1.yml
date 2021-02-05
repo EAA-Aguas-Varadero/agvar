@@ -16,12 +16,8 @@ jobs:
 
         # Run tests
         - name: Test
-          run: dotnet test
+          run: dotnet --info
         
-        # DotNet restore
-        - name: DotNet restore
-          run: dotnet restore
-
         # Generate the website
         - name: Publish
           run: dotnet publish ./AguasVaraderoGitHub.sln --configuration Release
